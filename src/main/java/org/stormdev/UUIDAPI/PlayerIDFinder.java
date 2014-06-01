@@ -83,11 +83,6 @@ public class PlayerIDFinder {
 			throw new RuntimeException("Please DO NOT look up mojang IDs in the primary thread!");
 		}
 		
-		Player pl = Bukkit.getPlayer(playername);
-		if(pl != null){
-			return getMojangID(pl);
-		}
-		
 		String id;
 		
 		try {
