@@ -26,6 +26,7 @@ import org.bukkit.craftbukkit.libs.com.google.gson.JsonParser;
 import org.bukkit.entity.Player;
 import org.bukkit.metadata.MetadataValue;
 import org.bukkit.plugin.Plugin;
+import org.stormdev.uuidcorrector.main.Core;
 
 import com.google.common.collect.ImmutableList;
 
@@ -58,11 +59,11 @@ public class PlayerIDFinder {
 			UUID id = getAsUUID(mid.getID());
 			PlayerReflect.setPlayerUUID(player, id);
 			if(player.getUniqueId().toString().equals(id.toString())){
-				Bukkit.getConsoleSender().sendMessage("Successfully corrected UUID for "
+				Core.plugin.getLogger().info("Successfully corrected UUID for "
 					+player.getName()+" to "+player.getUniqueId()+" for compatibility with online-mode plugins! (Too late for join events though)");
 			}
 			else {
-				Bukkit.getConsoleSender().sendMessage("FAILED to set correct UUID for "+player.getName()+"! They're using UUID: "+player.getUniqueId());
+				Core.plugin.getLogger().info("FAILED to set correct UUID for "+player.getName()+"! They're using UUID: "+player.getUniqueId());
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

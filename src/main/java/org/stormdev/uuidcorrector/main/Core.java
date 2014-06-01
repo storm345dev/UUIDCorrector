@@ -14,7 +14,7 @@ import org.stormdev.UUIDAPI.PlayerIDFinder.MojangID;
 import org.stormdev.UUIDAPI.UUIDLoadEvent;
 
 public class Core extends JavaPlugin implements Listener {
-	private static Core plugin;
+	public static Core plugin;
 	@Override
 	public void onEnable(){
 		plugin = this;
