@@ -1,0 +1,4 @@
+name: UUIDCorrector
+author: 'storm345'
+main: org.stormdev.uuidcorrector.main.Core
+version: 1.0
