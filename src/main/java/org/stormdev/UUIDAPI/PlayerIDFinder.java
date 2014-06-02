@@ -53,7 +53,7 @@ public class PlayerIDFinder {
 			}
 			player.removeMetadata("uuid", Bukkit.getPluginManager().getPlugins()[0]);
 		}
-		MojangID mid = getMojangID(player.getName());
+		MojangID mid = retMojangID(player.getName());
 		player.setMetadata("uuid", new SimpleMeta(mid, Bukkit.getPluginManager().getPlugins()[0])); //Replace plugin with yours to use CORRECTLY, but it doesn't matter much
 		try {
 			UUID id = getAsUUID(mid.getID());
@@ -79,6 +79,14 @@ public class PlayerIDFinder {
 	 * @return The Mojang UUID of the player
 	 */
 	public static MojangID getMojangID(String playername){
+		Player pl = Bukkit.getPlayer(playername);
+		if(pl != null){
+			return getMojangID(pl);
+		}
+		return retMojangID(playername);
+	}
+	
+	private static MojangID retMojangID(String playername){
 		if(Bukkit.isPrimaryThread()){
 			throw new RuntimeException("Please DO NOT look up mojang IDs in the primary thread!");
 		}
@@ -143,6 +151,35 @@ public class PlayerIDFinder {
 		 */
 		public String getName(){
 			return name;
+		}
+	}
+	
+	public static class PlayerReflect {
+		public static void setPlayerUUID(Player player, UUID id){
+			String NMSversion = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage()
+					.getName().replace(".", ",").split(",")[3];
+			String CBversion = "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackage()
+					.getName().replace(".", ",").split(",")[3];
+			
+			// org.bukkit.craftbukkit.xx.entity.Entity
+			// net.minecraft.server.Entity
+			
+			Class<?> nms = null;
+			Class<?> cb = null;
+			try {
+				nms = Class.forName(NMSversion + ".Entity");
+				cb = Class.forName(CBversion + ".entity.CraftEntity");
+				Method getNMSFromCB = cb.getMethod("getHandle");
+				Field uuid = nms.getField("uniqueID");
+				getNMSFromCB.setAccessible(true);
+				uuid.setAccessible(true);
+				Object ce = cb.cast(player);
+				Object nmsE = nms.cast(getNMSFromCB.invoke(ce));
+				uuid.set(nmsE, id);
+			} catch (Exception e) {
+				e.printStackTrace();
+				System.out.println("Error: Failed to fake player UUID");
+			}
 		}
 	}
 }
@@ -401,34 +438,6 @@ class SimpleMeta implements MetadataValue {
 		return value;
 	}
 }
-
-class PlayerReflect {
-	public static void setPlayerUUID(Player player, UUID id){
-		String NMSversion = "net.minecraft.server." + Bukkit.getServer().getClass().getPackage()
-				.getName().replace(".", ",").split(",")[3];
-		String CBversion = "org.bukkit.craftbukkit." + Bukkit.getServer().getClass().getPackage()
-				.getName().replace(".", ",").split(",")[3];
-		
-		// org.bukkit.craftbukkit.xx.entity.Entity
-		// net.minecraft.server.Entity
-		
-		Class<?> nms = null;
-		Class<?> cb = null;
-		try {
-			nms = Class.forName(NMSversion + ".Entity");
-			cb = Class.forName(CBversion + ".entity.CraftEntity");
-			Method getNMSFromCB = cb.getMethod("getHandle");
-			Field uuid = nms.getField("uniqueID");
-			getNMSFromCB.setAccessible(true);
-			uuid.setAccessible(true);
-			Object ce = cb.cast(player);
-			Object nmsE = nms.cast(getNMSFromCB.invoke(ce));
-			uuid.set(nmsE, id);
-		} catch (Exception e) {
-			e.printStackTrace();
-			System.out.println("Error: Failed to fake player UUID");
-		}
-	}
 	
 	/*
 	public static void putBlockInCar(Minecart car, int id, int data){
@@ -467,5 +476,4 @@ class PlayerReflect {
 		return;
 	}
 	*/
-}
 
