@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.stormdev</groupId>
     <artifactId>UUIDCorrector</artifactId>
-    <version>1.0</version>
+    <version>2.0</version>
     <name>UUIDCorrector</name>
     <url>http://www.minetheftauto.com</url>
     <build>
