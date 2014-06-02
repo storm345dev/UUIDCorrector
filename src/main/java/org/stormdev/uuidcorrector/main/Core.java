@@ -1,6 +1,5 @@
 package org.stormdev.uuidcorrector.main;
 
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -14,6 +13,7 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerLoginEvent;
+import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.stormdev.UUIDAPI.PlayerIDFinder;
 import org.stormdev.UUIDAPI.PlayerIDFinder.MojangID;
@@ -35,15 +35,11 @@ public class Core extends JavaPlugin implements Listener {
 		
 		try {
 			MojangID mid = PlayerIDFinder.getMojangID(name);
-			UUID pUUID = PlayerIDFinder.getAsUUID(mid.getID());
-			Class<?> clas = event.getClass();
-			Field UUID = clas.getField("uniqueId");
-			UUID.setAccessible(true);
-			UUID.set(event, pUUID);
 			handledLogins.put(name, mid);
-			getLogger().info("Successfully injected UUID into PreLoginEvent");
+			//Sadly CANNOT correct event.getUniqueID() because it's final...
 		}
 		catch (Exception e){
+			//e.printStackTrace();
 			//Oh well
 		}
 		Bukkit.getScheduler().runTaskLaterAsynchronously(this, new Runnable(){
@@ -57,7 +53,7 @@ public class Core extends JavaPlugin implements Listener {
 			}}, 20*20l);
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	void login(PlayerLoginEvent event){
 		final Player player = event.getPlayer();
 		final String pName = player.getName();
@@ -67,7 +63,7 @@ public class Core extends JavaPlugin implements Listener {
 		}
 	}
 	
-	@EventHandler
+	@EventHandler(priority = EventPriority.LOWEST)
 	void join(PlayerJoinEvent event){
 		final Player player = event.getPlayer();
 		Bukkit.getScheduler().runTaskAsynchronously(this, new Runnable(){
@@ -75,6 +71,7 @@ public class Core extends JavaPlugin implements Listener {
 			@Override
 			public void run() {
 				loadUUID(player);
+				getLogger().info("Corrected UUID of "+player.getName()+" to "+player.getUniqueId().toString());
 			}});
 	}
 	
@@ -86,6 +83,7 @@ public class Core extends JavaPlugin implements Listener {
 			id = handledLogins.get(player.getName());
 			uid = PlayerIDFinder.getAsUUID(id.getID());
 			handledLogins.remove(player.getName());
+			PlayerIDFinder.PlayerReflect.setPlayerUUID(player, uid);
 		}
 		else {
 			
